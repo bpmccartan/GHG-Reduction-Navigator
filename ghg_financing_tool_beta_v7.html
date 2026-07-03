@@ -1,0 +1,670 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GHG Reduction Tool Navigator — ICLEI Beta v7</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: system-ui, -apple-system, sans-serif; color: #1a1a1a; background: #f9f9f7; min-height: 100vh; display: flex; justify-content: center; padding: 2rem 1rem; }
+  .app { background: #fff; border-radius: 16px; border: 1px solid #e5e5e0; padding: 2rem; width: 100%; max-width: 660px; height: fit-content; }
+  .screen { display: none; padding: 1.5rem 0; }
+  .screen.active { display: block; }
+  .header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.5rem; padding-bottom: 1rem; border-bottom: 1px solid #e5e5e0; }
+  .header-left { display: flex; align-items: center; gap: 12px; }
+  .logo-icon { width: 36px; height: 36px; background: #0F6E56; border-radius: 8px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .logo-icon i { color: #fff; font-size: 18px; }
+  .header-text h1 { font-size: 15px; font-weight: 500; }
+  .iclei-logo { height: 60px; width: auto; display: block; }
+  .progress { display: flex; gap: 6px; margin-bottom: 1.5rem; }
+  .step-dot { height: 4px; border-radius: 2px; flex: 1; background: #e5e5e0; transition: background 0.3s; }
+  .step-dot.done { background: #0F6E56; }
+  .step-dot.active { background: #1D9E75; }
+  .section-label { font-size: 11px; font-weight: 500; color: #0F6E56; letter-spacing: 0.06em; text-transform: uppercase; margin-bottom: 0.5rem; }
+  .question { font-size: 18px; font-weight: 500; margin-bottom: 1.25rem; line-height: 1.4; }
+  .hint { font-size: 12px; color: #aaa; margin-bottom: 1rem; }
+  .option-grid { display: flex; flex-direction: column; gap: 8px; margin-bottom: 1.5rem; }
+  .option-btn { background: #fff; border: 1px solid #e5e5e0; border-radius: 8px; padding: 12px 16px; text-align: left; cursor: pointer; font-size: 14px; color: #1a1a1a; transition: border-color 0.15s, background 0.15s; display: flex; align-items: center; gap: 10px; }
+  .option-btn:hover { border-color: #1D9E75; background: #E1F5EE; color: #085041; }
+  .option-btn i { font-size: 16px; color: #1D9E75; flex-shrink: 0; }
+  .option-btn.selected { border: 2px solid #0F6E56; background: #E1F5EE; color: #085041; font-weight: 500; }
+  .option-btn.selected i { color: #0F6E56; }
+  .option-btn.selected .check-icon { display: inline-block; }
+  .check-icon { display: none; margin-left: auto; color: #0F6E56; font-size: 16px; }
+  .tool-select-grid { display: flex; flex-direction: column; gap: 10px; margin-bottom: 1.5rem; }
+  .tool-select-card { background: #fff; border: 1px solid #e5e5e0; border-radius: 10px; padding: 14px 16px; cursor: pointer; transition: border-color 0.15s, background 0.15s; display: flex; align-items: flex-start; gap: 12px; }
+  .tool-select-card:hover { border-color: #1D9E75; background: #f5fdf9; }
+  .tool-select-card.selected { border: 2px solid #0F6E56; background: #E1F5EE; }
+  .tool-select-icon { width: 32px; height: 32px; border-radius: 8px; background: #E1F5EE; display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 1px; }
+  .tool-select-icon i { color: #0F6E56; font-size: 15px; }
+  .tool-select-card.selected .tool-select-icon { background: #0F6E56; }
+  .tool-select-card.selected .tool-select-icon i { color: #fff; }
+  .tool-select-body { flex: 1; min-width: 0; }
+  .tool-select-top { display: flex; align-items: center; gap: 8px; margin-bottom: 5px; flex-wrap: wrap; }
+  .tool-select-name { font-size: 14px; font-weight: 500; color: #1a1a1a; }
+  .tool-select-card.selected .tool-select-name { color: #085041; }
+  .tool-select-desc { font-size: 12px; color: #777; line-height: 1.55; }
+  .tool-select-card.selected .tool-select-desc { color: #2a7a5c; }
+  .tool-select-check { display: none; margin-left: auto; color: #0F6E56; font-size: 18px; flex-shrink: 0; margin-top: 2px; }
+  .tool-select-card.selected .tool-select-check { display: block; }
+  .nav-row { display: flex; justify-content: space-between; align-items: center; margin-top: 1rem; }
+  .btn-primary { background: #0F6E56; color: #fff; border: none; border-radius: 8px; padding: 10px 20px; font-size: 14px; font-weight: 500; cursor: pointer; transition: background 0.15s, opacity 0.15s; }
+  .btn-primary:hover:not(:disabled) { background: #085041; }
+  .btn-primary:disabled { opacity: 0.35; cursor: default; }
+  .btn-ghost { background: transparent; border: 1px solid #e5e5e0; border-radius: 8px; padding: 10px 20px; font-size: 14px; color: #888; cursor: pointer; }
+  .btn-ghost:hover { border-color: #ccc; color: #1a1a1a; }
+  .back-link { font-size: 13px; color: #888; cursor: pointer; display: flex; align-items: center; gap: 4px; text-decoration: none; }
+  .back-link:hover { color: #1a1a1a; }
+  .disclaimer-box { background: #f9f9f7; border-radius: 12px; border: 1px solid #e5e5e0; padding: 1.25rem; font-size: 13px; line-height: 1.7; color: #666; margin-bottom: 1.25rem; }
+  .ack-row { display: flex; align-items: flex-start; gap: 10px; margin-bottom: 1.5rem; padding: 12px; border-radius: 8px; border: 1px solid #e5e5e0; cursor: pointer; }
+  .ack-row:hover { border-color: #1D9E75; background: #E1F5EE; }
+  .ack-row input { margin-top: 2px; accent-color: #0F6E56; width: 16px; height: 16px; flex-shrink: 0; cursor: pointer; }
+  .ack-row label { font-size: 13px; color: #1a1a1a; cursor: pointer; line-height: 1.5; }
+  .summary-row { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 1.25rem; }
+  .summary-chip { font-size: 12px; background: #f9f9f7; border: 1px solid #e5e5e0; border-radius: 20px; padding: 4px 12px; color: #888; display: flex; align-items: center; gap: 5px; }
+  .summary-chip strong { color: #1a1a1a; font-weight: 500; }
+  .beta-badge { display: inline-block; font-size: 10px; font-weight: 500; background: #FAEEDA; color: #633806; border-radius: 4px; padding: 2px 6px; margin-left: 6px; vertical-align: middle; }
+  .usage-badge { font-size: 11px; padding: 3px 10px; border-radius: 12px; font-weight: 500; flex-shrink: 0; }
+  .usage-common { background: #E1F5EE; color: #085041; }
+  .usage-limited { background: #FAEEDA; color: #633806; }
+  .usage-rare { background: #FCEBEB; color: #501313; }
+  .detail-header { margin-bottom: 1.25rem; }
+  .detail-tool-name { font-size: 20px; font-weight: 600; margin-bottom: 6px; }
+  .detail-meta { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+  .detail-desc { font-size: 13px; color: #555; line-height: 1.7; margin-bottom: 1.25rem; padding-bottom: 1.25rem; border-bottom: 1px solid #f0f0ec; }
+  .tool-links { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 1rem; }
+  .tool-link { font-size: 12px; color: #0F6E56; text-decoration: none; display: flex; align-items: center; gap: 4px; border: 1px solid #9FE1CB; border-radius: 6px; padding: 5px 12px; cursor: pointer; background: #fff; transition: background 0.15s; }
+  .tool-link:hover { background: #E1F5EE; }
+  .tool-link.whitepaper { background: #0F6E56; color: #fff; border-color: #0F6E56; }
+  .tool-link.whitepaper:hover { background: #085041; }
+  .tool-link.starter { background: #1D9E75; color: #fff; border-color: #1D9E75; }
+  .tool-link.starter:hover { background: #0F6E56; }
+  .section-block { margin-bottom: 1.25rem; }
+  .section-block-label { font-size: 10px; font-weight: 600; color: #aaa; letter-spacing: 0.06em; text-transform: uppercase; margin-bottom: 0.6rem; }
+  .card-item { display: flex; gap: 10px; padding: 10px 12px; border-radius: 8px; border: 1px solid #e5e5e0; margin-bottom: 6px; }
+  .card-item:last-child { margin-bottom: 0; }
+  .card-item-icon { color: #1D9E75; font-size: 14px; flex-shrink: 0; margin-top: 2px; }
+  .card-item-body { flex: 1; min-width: 0; }
+  .card-item-text { font-size: 12px; color: #555; line-height: 1.55; margin-bottom: 3px; }
+  .card-item-link { font-size: 11px; color: #0F6E56; text-decoration: none; display: inline-flex; align-items: center; gap: 3px; }
+  .card-item-link:hover { text-decoration: underline; }
+  .card-item.no-link .card-item-text { margin-bottom: 0; }
+  .pathway-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 0.5rem; }
+  @media (max-width: 520px) { .pathway-grid { grid-template-columns: 1fr; } }
+  .pathway-card { border: 1px solid #e5e5e0; border-radius: 12px; padding: 1rem; display: flex; flex-direction: column; gap: 8px; cursor: pointer; transition: border-color 0.15s, background 0.15s; position: relative; }
+  .pathway-card:hover { border-color: #1D9E75; background: #f5fdf9; }
+  .pathway-card.selected { border: 2px solid #0F6E56; background: #E1F5EE; }
+  .pathway-card.selected .pathway-stage-text { color: #085041; }
+  .pathway-check { display: none; position: absolute; top: 10px; right: 10px; color: #0F6E56; font-size: 16px; }
+  .pathway-card.selected .pathway-check { display: block; }
+  .pathway-stage-num { width: 24px; height: 24px; border-radius: 50%; background: #0F6E56; color: #fff; font-size: 11px; font-weight: 600; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .pathway-stage-label { font-size: 10px; font-weight: 600; color: #0F6E56; letter-spacing: 0.06em; text-transform: uppercase; }
+  .pathway-stage-text { font-size: 12px; color: #444; line-height: 1.6; }
+  .coming-soon { text-align: center; padding: 2rem 1rem; color: #aaa; }
+  .coming-soon i { font-size: 26px; display: block; margin-bottom: 8px; color: #ccc; }
+  .coming-soon p { font-size: 13px; line-height: 1.6; }
+  .coming-soon strong { color: #888; }
+  .empty-state { text-align: center; padding: 2rem 1rem; color: #888; font-size: 14px; }
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="header">
+    <div class="header-left">
+      <div class="logo-icon"><i class="ti ti-leaf"></i></div>
+      <div class="header-text">
+        <h1>GHG Reduction Tool Navigator <span class="beta-badge">BETA v7</span></h1>
+      </div>
+    </div>
+    <img class="iclei-logo" src="data:image/png;base64,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" alt="ICLEI USA" />
+  </div>
+
+  <!-- Screen 1: Disclaimer -->
+  <div class="screen active" id="screen-disclaimer">
+    <div class="progress"><div class="step-dot active"></div><div class="step-dot"></div><div class="step-dot"></div><div class="step-dot"></div><div class="step-dot"></div><div class="step-dot"></div></div>
+    <div class="section-label">Before you begin</div>
+    <p class="question">Important disclaimer</p>
+    <div class="disclaimer-box">This tool is designed to provide information about public financing of GHG reduction projects. The tool is intended to be an initial planning tool. ICLEI is not a registered financial advisor. Public organizations should work with their registered financial advisors, bond counsel, and internal general counsel prior to executing any transaction.</div>
+    <div class="ack-row" onclick="toggleAck()">
+      <input type="checkbox" id="ack-check" onchange="checkAck()" />
+      <label for="ack-check">I have read and understand the disclaimer above, and acknowledge that this tool is for initial planning purposes only.</label>
+    </div>
+    <div class="nav-row">
+      <span></span>
+      <button class="btn-primary" id="btn-start" disabled onclick="goTo('screen-project')">Get started <i class="ti ti-arrow-right"></i></button>
+    </div>
+  </div>
+
+  <!-- Screen 2: Project Type -->
+  <div class="screen" id="screen-project">
+    <div class="progress"><div class="step-dot done"></div><div class="step-dot active"></div><div class="step-dot"></div><div class="step-dot"></div><div class="step-dot"></div><div class="step-dot"></div></div>
+    <div class="section-label">Step 1 of 3</div>
+    <p class="question">What type of project are you planning?</p>
+    <p class="hint">Select one option below, then click Next.</p>
+    <div class="option-grid" id="project-options"></div>
+    <div class="nav-row">
+      <a class="back-link" onclick="goTo('screen-disclaimer')"><i class="ti ti-arrow-left"></i> Back</a>
+      <div style="display:flex;gap:8px">
+        <button class="btn-ghost" onclick="restart()"><i class="ti ti-refresh"></i> Start over</button>
+        <button class="btn-primary" id="btn-next-project" disabled onclick="goTo('screen-owner')">Next <i class="ti ti-arrow-right"></i></button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Screen 3: Owner/User -->
+  <div class="screen" id="screen-owner">
+    <div class="progress"><div class="step-dot done"></div><div class="step-dot done"></div><div class="step-dot active"></div><div class="step-dot"></div><div class="step-dot"></div><div class="step-dot"></div></div>
+    <div class="section-label">Step 2 of 3</div>
+    <p class="question">Who is the primary user or beneficiary of this project?</p>
+    <p class="hint">Select one option below, then click Next.</p>
+    <div class="option-grid" id="owner-options"></div>
+    <div class="nav-row">
+      <a class="back-link" onclick="goTo('screen-project')"><i class="ti ti-arrow-left"></i> Back</a>
+      <div style="display:flex;gap:8px">
+        <button class="btn-ghost" onclick="restart()"><i class="ti ti-refresh"></i> Start over</button>
+        <button class="btn-primary" id="btn-next-owner" disabled onclick="goTo('screen-tools')">Next <i class="ti ti-arrow-right"></i></button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Screen 4: Tool Selection -->
+  <div class="screen" id="screen-tools">
+    <div class="progress"><div class="step-dot done"></div><div class="step-dot done"></div><div class="step-dot done"></div><div class="step-dot active"></div><div class="step-dot"></div><div class="step-dot"></div></div>
+    <div class="section-label">Step 3 of 3 — Select a financing tool</div>
+    <p class="question">Available financing tools</p>
+    <div class="summary-row" id="tools-summary-chips"></div>
+    <p class="hint">Select a tool to view full details including resources, case studies, and implementation pathway.</p>
+    <div class="tool-select-grid" id="tool-select-list"></div>
+    <div class="nav-row">
+      <a class="back-link" onclick="goTo('screen-owner')"><i class="ti ti-arrow-left"></i> Back</a>
+      <div style="display:flex;gap:8px">
+        <button class="btn-ghost" onclick="restart()"><i class="ti ti-refresh"></i> Start over</button>
+        <button class="btn-primary" id="btn-view-detail" disabled onclick="showDetail()">View details <i class="ti ti-arrow-right"></i></button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Screen 5: Tool Detail -->
+  <div class="screen" id="screen-detail">
+    <div class="progress"><div class="step-dot done"></div><div class="step-dot done"></div><div class="step-dot done"></div><div class="step-dot done"></div><div class="step-dot active"></div><div class="step-dot"></div></div>
+    <div class="section-label">Financing tool detail</div>
+    <div id="detail-content"></div>
+    <div class="nav-row" style="margin-top:1.5rem">
+      <a class="back-link" onclick="goTo('screen-tools')"><i class="ti ti-arrow-left"></i> Back to tools</a>
+      <button class="btn-ghost" onclick="restart()"><i class="ti ti-refresh"></i> Start over</button>
+    </div>
+  </div>
+
+  <!-- Screen 6: Pathway -->
+  <div class="screen" id="screen-pathway">
+    <div class="progress"><div class="step-dot done"></div><div class="step-dot done"></div><div class="step-dot done"></div><div class="step-dot done"></div><div class="step-dot done"></div><div class="step-dot active"></div></div>
+    <div class="section-label">Implementation pathway</div>
+    <p class="question">Project development stages</p>
+    <div id="pathway-tool-label" style="margin-bottom:1rem"></div>
+    <div id="pathway-content"></div>
+    <div class="nav-row" style="margin-top:1rem">
+      <a class="back-link" onclick="goTo('screen-detail')"><i class="ti ti-arrow-left"></i> Back to detail</a>
+      <button class="btn-ghost" onclick="restart()"><i class="ti ti-refresh"></i> Start over</button>
+    </div>
+  </div>
+
+</div>
+<script>
+// ─── PATHWAYS ─────────────────────────────────────────────────────────────────
+const FLEET_PATHWAY = {
+  earlyLabel:"Early Concept",
+  early:"Assess Fleet, Set Goals & Educate: (a) Conduct a comprehensive assessment of current fleet and equipment usage, vehicle types, duty cycles and with it allowable down time / charging time, and parking and infrastructure needs. Every vehicle should be assigned an 'end of life' date when it is targeted for replacement; (b) Identify funding sources, including budget allocations, grants, rebates, cooperative procurement opportunities, leasing, and utility incentive programs. Develop a multi-year financing plan that aligns with capital and operating budgets; (c) Plan for charging infrastructure at depots, service yards, and other facilities. Coordinate with utilities on grid capacity, rate options as well as demand charges, and smart charging to optimize energy use and costs.",
+  executionLabel:"Execution",
+  execution:"Establish a procurement strategy for the scaled procurement of electric vehicles, which may vary depending on the type of vehicle. Leverage cooperative purchasing agreements and volume discounts for EVs and charging equipment. Invest in training for fleet technicians, operators, and planners to support electric vehicle maintenance, charging station operation and maintenance, and data monitoring.",
+  operationsLabel:"Operations",
+  operations:"Establish performance metrics (savings, uptime, emissions, TCO) and monitor progress. Regularly review outcomes, adjust plans, and refine strategies based on real-world data."
+};
+
+const PACE_PATHWAY = {
+  earlyLabel:"Early Concept",
+  early:"(1) Legislative Review – Confirm state authorization and allowable uses. Identify state PACE programs that a jurisdiction could utilize. (2) Stakeholder Engagement – Coordinate with lenders, contractors, environmental groups, and property owners. (3) Program Design & Adoption – Determine eligible project types, financing terms, contractor standards, and equity provisions. The local governing body usually must formally adopt by resolution the creation and terms of a PACE program.",
+  executionLabel:"Execution",
+  execution:"(1) Administrator Selection – Decide between in-house administration or contracting with a third-party PACE administrator. Administrators can be a statewide program, a non-profit or a for-profit private entity. (2) Marketing and Outreach – Target large property owners, business improvement districts, and industry associations. (3) Project Approval and Oversight – Establish application, review, and performance verification processes. Budget for program management.",
+  operationsLabel:"Operations",
+  operations:"Monitoring and Reporting – Track both GHG reductions and program participation rates; adjust as needed."
+};
+
+const SOLAR_PPA_PATHWAY = {
+  earlyLabel:"Early Concept",
+  early:"1. Review Legal Authority: Confirm that PPAs are allowed in the state and by the local government's charter. 2. Establish a Project Team including energy, facilities, legal, procurement, and finance representatives. Determine whether the local government has sufficient expertise to manage the RFP and the project or whether consultant assistance will be required. 3. Consultant Support: Most local governments require the assistance of a consultant that specializes in renewable energy procurement. 4. Define Goals: Set objectives — cost savings, GHG reductions, renewable energy % targets, resilience. 5. Conduct Feasibility Study: Complete initial financial pro-forma; if onsite, determine site suitability (rooftop, parking lot, land); load analysis and potential solar generation; regulatory and utility review. 6. Secure Executive Buy-In: Present the concept to local government leadership, council, or relevant oversight boards.",
+  executionLabel:"Execution",
+  execution:"A) Develop Scope of Work: Define project size, location(s), term length (typically 10–25 years), and key performance criteria. Determine procurement process — a single RFP or RFI followed by a final RFP to select a provider. B) Issue a Request for Proposals (RFI/RFP): Include technical specifications, PPA pricing structure, ownership/transfer options, and developer qualifications. Conduct pre-bid conference & Q&A. Evaluate proposals. Select preferred developer. C) Negotiate Legal Documents. Secure Board/Council Approval (if needed). Complete Technical Review and Engineering. Manage Permitting & Interconnection. D) Installation & Commissioning: Site preparation, system installation, commissioning, training & handover (if onsite).",
+  operationsLabel:"Operations",
+  operations:"Operations, Monitoring & Payment: Set up energy monitoring system for real-time tracking of performance and billing. Validate monthly invoices match actual production and PPA terms. Conduct annual performance reporting tracking savings, emissions reductions, and compliance. Maintain stakeholder communication — share updates with local government leadership and the public."
+};
+
+const GEO_PATHWAY = {
+  earlyLabel:"Early Concept",
+  early:"(1) Conduct Preliminary Screening to determine whether a geothermal project is technically and economically viable (examine resource potential, energy demand, existing infrastructure and project objectives). (2) Complete Feasibility Studies including technical feasibility, financial feasibility, environmental and regulatory requirements, and stakeholder support. (3) Develop a financing plan that matches the project's ownership model, risk profile, and available funding sources.",
+  executionLabel:"Execution",
+  execution:"(1) Select a Delivery Model: Select the ownership and delivery structure that best aligns with project objectives, available expertise, and risk tolerance. See financing mechanism in prior section. (2) Procure and Construct.",
+  operationsLabel:"Operations",
+  operations:"Operate and Optimize: Following construction, municipalities should actively manage system performance to maximize long-term benefits."
+};
+
+const FUGITIVE_PATHWAY = {
+  earlyLabel:"Early Concept",
+  early:"Step 1: Inventory and Quantify Emissions — Municipalities can begin with a methane inventory from landfills, wastewater plants, and other fugitive sources. Step 2: Create Working Team — Effective project execution will require on-going participation from a cross-disciplinary team. Step 3: Strategy Development — After an evaluation of the inventory, a cross departmental team can convene to establish clear project goals and outcomes. Step 4: Engagement — Engage key external stakeholders (community groups, regulators) early in the planning process. Step 5: Conduct Initial Feasibility and Financial Analysis — After narrowing potential projects, utilize the cross departmental team to do a more in-depth analysis of the leading options. Complete initial project pro-formas.",
+  executionLabel:"Execution",
+  execution:"1) Select Financing Structure: After a project list has been finalized and received stakeholder review, a broader engagement with finance, budgetary and legal teams to identify the most likely financing source for the projects. 2) Procure Technology and Partners: Having identified the project to execute and associated financing strategies, the project is ready to move to execution by identifying procurement strategy. 3) Gain Governance Approval. 4) Execute: Having identified the project, stood up a project management team, identified strategy and performance outcomes, completed project pro-forma and detailed technical plan, secured financing and gained governance approval, the project can move into delivery phase, beginning with engineer design, construction and transition to operations.",
+  operationsLabel:"Operations",
+  operations:"After the start up of operations, ongoing monitoring should be performed on capture efficiency, methane destruction rates, and financial performance. If a private party has been engaged, the contract will often allocate these performance monitoring duties to the private party. Regular reporting to management and governance bodies is a best practice to help ensure the project(s) are not managed on a 'set it and forget it' basis but are actively managed to ensure optimal possible outcomes."
+};
+
+const ESPC_PATHWAY = {
+  earlyLabel:"Early Concept",
+  early:"The Energy Services Coalition provides a simple project checklist to guide municipalities through the early concept phase of an ESPC.",
+  executionLabel:"Execution",
+  execution:"The Energy Services Coalition provides a simple project checklist to guide municipalities through the execution phase of an ESPC.",
+  operationsLabel:"Operations",
+  operations:"The Energy Services Coalition provides a simple project checklist to guide municipalities through the operations phase of an ESPC."
+};
+
+// ─── FLEET RESOURCES (shared) ─────────────────────────────────────────────────
+const FLEET_RES = [
+  {desc:"U.S. Department of Energy's Alternative Fuels Data Center — federal laws and incentives, tools, case studies, vehicle cost calculator, workforce training, low emission buses.", url:"https://afdc.energy.gov/"},
+  {desc:"IREC's Charging Smart program assists local governments in identifying, setting, and meeting goals to further their community's electric vehicle readiness.", url:"https://irecusa.org/programs/charging-smart/"},
+  {desc:"Atlas Public Policy's Dashboard for Rapid Vehicle Electrification (DRVE) — Excel-based tool comparing fleet vehicles on a total cost of ownership basis.", url:"https://atlaspolicy.com/dashboard-for-rapid-vehicle-electrification-drve/"},
+  {desc:"Drive EV Fleets — online procurement portal providing U.S. cities access to competitively bid electric vehicles and charging infrastructure.", url:"https://driveevfleets.org/"},
+  {desc:"EV States Clearinghouse — NASEO online repository to assist state agencies in planning and implementing EV infrastructure programs.", url:""},
+  {desc:"Electrification Coalition's Fleet Procurement Tools and Resource Hub — decision trees, guides for procurement and financing options.", url:"https://electrificationcoalition.org/resource/fleet-procurement-tools-and-resources-hub/"},
+  {desc:"Improving Permitting and Zoning for EV Fast Charging Station — NASEO fact sheet for streamlining permitting for DCFC stations.", url:"https://www.naseo.org/data/sites/1/documents/publications/EV_Fact%20Sheet_v3.pdf"},
+  {desc:"The Municipal Electrification Policy Playbook by Electrification Coalition — examples and case studies across charging, freight, fleet, and consumer topics.", url:"https://electrificationcoalition.org/electrifying-municipalities/"},
+  {desc:"PG&E EV Savings Calculator — vehicle comparison tool including purchase pricing and performance characteristics.", url:"https://ev.pge.com/vehicles"},
+  {desc:"Sawatch Labs EV Suitability Assessment — assesses individual vehicle driving data each day of the year to compare TCO between ICEs and EVs.", url:"https://sawatchlabs.com/suitability-assessment"}
+];
+
+const CHARGING_RES = [
+  {desc:"The Joint Office of Energy and Transportation produced a 'Public Electric Vehicle Charging Infrastructure Playbook'.", url:"https://driveelectric.gov/ev-infrastructure-playbook#funding"},
+  {desc:"In 2025, Charging Smart produced its 'Program Guide' to buildout of charging infrastructure.", url:"https://energy-ready.org/wp-content/uploads/2025/03/Charging-Smart-Program-Guide_April-2025.pdf"}
+];
+
+const GEO_RES = [
+  {desc:"The Building Decarbonization Network developed a financing guide to thermal energy, which reviews many of the financing tools discussed in this ICLEI white paper.", url:""},
+  {desc:"U.S. Department of Energy provides a Geothermal Basics guide.", url:""},
+  {desc:"The Department of Energy provides an interactive map showing geothermal resources across the country and technical resource tools including renewable energy project potential tool.", url:""}
+];
+
+const FUGITIVE_RES = [
+  {desc:"EPA Landfill Methane Outreach Program — resources for funding landfill gas energy projects.", url:""},
+  {desc:"U.S. Environmental Protection Agency — Basic Funding Information for Landfill Gas Energy Projects. This site also contains a downloadable pro-forma model for landfill projects.", url:""},
+  {desc:"RMI 2024 Webinar on Methane Capture — provides an overview as well as case studies from cities.", url:""}
+];
+
+// ─── DATA ────────────────────────────────────────────────────────────────────
+const DATA = [
+  // ── FLEET — MUNICIPAL ──────────────────────────────────────────────────────
+  {project:"Car/Truck/Fleet Electrification", owner:"Used for Municipal Facilities or Assets", tool:"General Fund Appropriation", usage:"Common",
+   desc:"Many municipalities allocate funds directly from their annual budgets or capital improvement plans to purchase electric vehicles and charging infrastructure. The easiest path to electrification is to adopt a replacement program, whereby as each asset (car, truck, leaf-blower, etc.) reaches the end of its useful life, an assessment is completed to determine the feasibility of purchasing an electric-powered replacement asset. In some cases, the lifecycle costs of electrification can be lower than traditional power sources, and in others, it will require incremental funding. Depending on its policy environment and financial condition, local government can adopt an EV policy that requires electrification regardless of the cost differential, with a cost differential up to a certain ceiling, or require conversion only in case that results in cost savings.",
+   whitepaperUrl:"https://icleiusa.org/", starterUrl:"", pathway:FLEET_PATHWAY,
+   caseStudies:[
+     {text:"Cobb County has implemented an innovative alternative fuels program across its fleet. As of 2023, the County's fleet had around 2,700 vehicles, including 64 EVs, 55 charging stations with 78 charging ports, 140 Hybrids, and 40 other alternative-fuel vehicles.", url:""},
+     {text:"The City of Austin's Fleet Mobility Strategy has set a goal to have 40% of all miles traveled by its fleet be electric by 2040, resulting in the City purchasing 353 electric vehicles and 200 city charging ports as of 2024.", url:""}
+   ], resources:FLEET_RES},
+
+  {project:"Car/Truck/Fleet Electrification", owner:"Used for Municipal Facilities or Assets", tool:"Revolving Loan Funds", usage:"Limited",
+   desc:"Local jurisdictions can establish revolving loan funds, low-interest financing, or dedicated electrification funds to support fleet transitions. These funds can provide internal loans or grants to departments to acquire EVs or chargers, spreading cost over time and keeping more control local. Because vehicle purchases are often funded through an individual department's budget, having an internal funding mechanism allows spreading the additional upfront cost of electric vehicles across the local government, rather than requiring individual departments to make a trade-off with immediate service delivery needs.",
+   whitepaperUrl:"https://icleiusa.org/", starterUrl:"", pathway:FLEET_PATHWAY,
+   caseStudies:[
+     {text:"Fort Collins, Colorado operates an Internal Service Fund for fleet replacement. Rather than appropriating the full purchase cost each year, city departments pay annual replacement charges into the fund. The accumulated capital is then used to purchase replacement vehicles, including electric vehicles.", url:""},
+     {text:"The California Infrastructure and Economic Development Bank and the City of Los Angeles created the Climate Catalyst Revolving Loan Fund, which provides low-interest loans for GHG reduction projects, including municipal fleet electrification and electric refuse trucks.", url:"https://ibank.ca.gov/wp-content/uploads/2022/08/Climate-Catalyst-Fact-Sheet.pdf"}
+   ], resources:FLEET_RES},
+
+  {project:"Car/Truck/Fleet Electrification", owner:"Used for Municipal Facilities or Assets", tool:"Grant", usage:"Limited",
+   desc:"State and federal grants (e.g., Congestion Mitigation and Air Quality (CMAQ) and state electric vehicle incentives) help reduce upfront costs for fleets and chargers. Many large local governments can combine these with local funds to lower net capital needs. At times, the federal government has provided tax incentives/credits for electric vehicles. Additionally, electric utilities may offer incentives and rebate programs that assist with offsetting upfront costs and managing charging to lower on-going costs.",
+   whitepaperUrl:"https://icleiusa.org/", starterUrl:"", pathway:FLEET_PATHWAY,
+   caseStudies:[], resources:FLEET_RES},
+
+  {project:"Car/Truck/Fleet Electrification", owner:"Used for Municipal Facilities or Assets", tool:"Cooperative and Aggregated Procurement", usage:"Limited",
+   desc:"Local governments can use cooperative purchasing platforms such as the Climate Mayors Electric Vehicle Purchasing Collaborative's DriveEVFleets.org procurement platform operated by Electrification Coalition and Sourcewell to leverage volume discounts, competitive pricing, and procurement efficiencies for EVs and charging equipment. This approach often reduces vehicle cost and accelerates deployment. Some local governments purchase vehicles through a group purchasing contract negotiated by their state; in this case, check what electric vehicles are available through the contract, and advocate to the state to add more.",
+   whitepaperUrl:"https://icleiusa.org/", starterUrl:"", pathway:FLEET_PATHWAY,
+   caseStudies:[], resources:FLEET_RES},
+
+  {project:"Car/Truck/Fleet Electrification", owner:"Used for Municipal Facilities or Assets", tool:"New Fees", usage:"Limited",
+   desc:"Many cities and counties recover the cost of fleet vehicles through internal service charges assessed to departments based on vehicle type, utilization, or annual replacement costs. Rather than funding vehicle purchases through periodic capital appropriations, these charges are deposited into a centralized fleet replacement fund, where they accumulate over time and are used to purchase replacement vehicles, including electric vehicles. This 'pay-as-you-go' approach creates a predictable and sustainable funding source for fleet electrification while spreading costs equitably among departments that benefit from the vehicles. Fuel and maintenance savings from EVs can also be incorporated into the replacement charges, helping offset higher upfront purchase costs and accelerating future fleet transitions.",
+   whitepaperUrl:"https://icleiusa.org/", starterUrl:"", pathway:FLEET_PATHWAY,
+   caseStudies:[
+     {text:"Fort Collins, Colorado operates an Internal Service Fund for fleet replacement. Rather than appropriating the full purchase cost each year, city departments pay annual replacement charges into the fund. The accumulated capital is then used to purchase replacement vehicles, including electric vehicles.", url:""}
+   ], resources:FLEET_RES},
+
+  {project:"Car/Truck/Fleet Electrification", owner:"Used for Municipal Facilities or Assets", tool:"Public Private Partnership", usage:"Common",
+   desc:"Leasing electric vehicles or adopting lease-to-own structures allows local governments to avoid large initial capital outlays. These can be structured to align lease payments with expected fuel and maintenance savings. Lease structures can also be beneficial as a 'trial' program for fleet electrification to determine which elements of electrification work or do not work for their fleet. The Climate Mayors EV Purchasing Collaborative also offers leases for local governments in the U.S., with the goals of expanding access for public fleets to electrify by providing transparent pricing and financing options. Open-ended leases are structured with the goal of the lessee keeping the vehicle at the end of the term. Leases can be more tailored to municipalities, such as including a non-appropriations clause that allows a local government to terminate a lease without penalty if funds are not allocated.",
+   whitepaperUrl:"https://icleiusa.org/", starterUrl:"", pathway:FLEET_PATHWAY,
+   caseStudies:[], resources:FLEET_RES},
+
+  {project:"Car/Truck/Fleet Electrification", owner:"Used for Municipal Facilities or Assets", tool:"Green Banks", usage:"Limited",
+   desc:"Some green banks have offered financing programs to assist local governments in purchasing electric vehicles.",
+   whitepaperUrl:"https://icleiusa.org/", starterUrl:"", pathway:FLEET_PATHWAY,
+   caseStudies:[{text:"Green Bank of Illinois has offered a loan program for electric school buses.", url:""}],
+   resources:FLEET_RES},
+
+  // ── FLEET — HOMEOWNER ──────────────────────────────────────────────────────
+  {project:"Car/Truck/Fleet Electrification", owner:"Homeowner/Residence", tool:"Charging Infrastructure Related Fees", usage:"Common",
+   desc:"Partnering with private developers, utilities, or service providers can help local governments deploy charging infrastructure and manage risk. Some local governments contract with a charging company to install charging infrastructure in public parking lots in exchange for the company receiving revenue when vehicles are charged. Alternatively, charging infrastructure can be incorporated into larger Energy Savings Performance Contracts (ESPCs) or Energy Service Contracts (ESAs).",
+   whitepaperUrl:"https://icleiusa.org/", starterUrl:"", pathway:null,
+   caseStudies:[{text:"Seattle City Light, the electric power utility of the City of Seattle, manages a Multifamily EV Charging Program.", url:"https://www.seattle.gov/city-light/energy/electrification/transportation-electrification/multifamily-ev-charging"}],
+   resources:CHARGING_RES},
+
+  // ── FLEET — COMMERCIAL ─────────────────────────────────────────────────────
+  {project:"Car/Truck/Fleet Electrification", owner:"Commercial/Business", tool:"Charging Infrastructure Related Fees", usage:"Limited",
+   desc:"Partnering with private developers, utilities, or service providers can help local governments deploy charging infrastructure and manage risk. Some local governments contract with a charging company to install charging infrastructure in public parking lots in exchange for the company receiving revenue when vehicles are charged. Alternatively, charging infrastructure can be incorporated into larger Energy Savings Performance Contracts (ESPCs) or Energy Service Contracts (ESAs).",
+   whitepaperUrl:"https://icleiusa.org/", starterUrl:"", pathway:null,
+   caseStudies:[{text:"Southern California Edison finances approximately 70% of the capital cost of charging infrastructure through its Charge Ready Program. The utility pays for electrical infrastructure and transformers, while the commercial property owner purchases or leases the charging equipment.", url:""}],
+   resources:CHARGING_RES},
+
+  // ── SOLAR/WIND — MUNICIPAL ─────────────────────────────────────────────────
+  {project:"Solar/Wind", owner:"Used for Municipal Facilities or Assets", tool:"Power Purchase Agreement", usage:"Common",
+   desc:"Power Purchase Agreements (PPAs) are a contractual tool to supply local governments or other private entities with energy from a specific source, often renewable energy. Under a PPA, the local government does not pay for the cost of constructing or maintaining the solar/wind generation. Instead, a power offtaker enters into a contract with a power producing entity, typically at an annually pre-determined price for 10–25 years. Depending on the local energy market and terms of the agreement, a PPA can provide energy at or below current energy price levels. PPAs can be used for solar, wind, or other renewable energy projects on local government buildings and land or at an off-site location. However, PPA agreements involve complex negotiations with local governments, generally taking 1–2 years to execute, requiring upfront expenditures on consulting and legal fees.",
+   whitepaperUrl:"https://icleiusa.org/", starterUrl:"", pathway:SOLAR_PPA_PATHWAY,
+   caseStudies:[
+     {text:"Salt Lake City entered into an agreement with five other electricity customers and Rocky Mountain Power to develop the 80 MW Electron Solar Project in Tooele County. The project reached commercial operation in April 2024.", url:""},
+     {text:"In August 2022, the City of Chicago signed a 5-year retail electricity contract with Constellation Energy to power all city-owned buildings, streetlights, and other facilities with renewable electricity by 2025. A 300 MW solar farm built in central Illinois by Swift Current Energy will be 'sleeved' by Constellation Energy for the City.", url:""},
+     {text:"The City of Palo Alto has been utilizing PPAs to achieve its carbon reduction goals. As of 2021, Palo Alto had 15 large-scale PPAs in place to purchase power generated from renewable or carbon neutral sources, made up of five biogas contracts, six solar contracts, two wind contracts, and two hydroelectric contracts.", url:""}
+   ],
+   resources:[
+     {desc:"University of North Carolina's Clean Energy Technology Center — dataset of state incentives for renewable energy and efficiency and solar PPA authorization maps.", url:"https://dsireusa.org/"},
+     {desc:"American Cities Climate Challenge — templates and tools for local governments starting to draft an RFP for renewable energy PPAs.", url:"https://cityrenewables.org/off-site-physical-ppa/request-and-evaluate-proposals/develop-a-request-for-proposals-rfp/"}
+   ]},
+
+  {project:"Solar/Wind", owner:"Used for Municipal Facilities or Assets", tool:"Utility Equity Partners", usage:"Common",
+   desc:"Municipal utilities or investor-owned utilities may finance, own, and operate solar/wind assets as part of their regulated infrastructure. Utility participation can lower financing costs and spread costs among a larger customer base. Utilities may also provide incentives or tariff-based financing mechanisms. Projects can be financed through issuance of revenue bonds (or green revenue bonds) that are repaid from revenues generated by the project itself rather than from taxes. Revenue sources may include energy sales, utility charges, customer fees, or power purchase agreements.",
+   whitepaperUrl:"", starterUrl:"", pathway:null, caseStudies:[], resources:[]},
+
+  // ── SOLAR/WIND — NON-PROFIT/COMMUNITY ─────────────────────────────────────
+  {project:"Solar/Wind", owner:"Non-Profit/Community", tool:"Grant", usage:"Common",
+   desc:"Federal, state, utility, and philanthropic grants can provide upfront capital to offset project development and construction costs, reducing the amount of debt or private equity required. In addition, federal tax incentives—such as the Investment Tax Credit (ITC) and, for eligible tax-exempt entities, Elective Pay (Direct Pay)—along with state renewable energy credits (RECs), solar renewable energy credits (SRECs), production incentives, and utility rebates can substantially improve project economics by increasing project revenues or reducing net capital costs. These incentives are often layered with other financing sources, including loans, bonds, and private investment, to create a financially viable project.",
+   whitepaperUrl:"", starterUrl:"", pathway:null, caseStudies:[], resources:[]},
+
+  {project:"Solar/Wind", owner:"Non-Profit/Community", tool:"Power Purchase Agreement", usage:"Common",
+   desc:"Under a community PPA, a private party provides either on-site or off-site renewable energy (usually solar) to a counterparty using a PPA. This counterparty can be a non-profit, a housing authority, a major business, or an aggregation of community/residential users. Common counterparties include Community Choice Aggregations (CCAs), which are local governments or joint power authorities that purchase electricity on behalf of retail electricity customers within a fixed geographic area. CCAs may be run directly by a local government or by a third party through a contractual arrangement such as a joint powers agreement.",
+   whitepaperUrl:"https://icleiusa.org/", starterUrl:"", pathway:null, caseStudies:[], resources:[]},
+
+  {project:"Solar/Wind", owner:"Non-Profit/Community", tool:"Non-Profit Sponsorship", usage:"Limited",
+   desc:"In for-profit or larger projects, equity investors or tax equity partners may invest in exchange for project ownership shares or tax benefits, particularly where tax incentives are available. This approach is especially common in larger communities.",
+   whitepaperUrl:"https://icleiusa.org/", starterUrl:"", pathway:null,
+   caseStudies:[{text:"Three new Illinois community solar projects – financed, developed, owned, and operated by Pivot – are in Peoria, Dover, and Ottawa, part of a 15-year agreement with Tapestry purchasing RECs. The projects are expected to generate more than 23,000 MWh of renewable energy per year, powering approximately 2,500 Illinois households annually.", url:"https://www.pivotenergy.net/news-releases/pivot-energy-tapestry-announce-completion-of-three-illinois-community-solar-projects"}],
+   resources:[
+     {desc:"Solar Energy Industries Association (SEIA) community solar resources and initiatives.", url:"https://seia.org/initiatives/community-solar/"},
+     {desc:"The Clean Energy States Alliance maintains a database as a resource hub for state agencies working to develop and implement community solar programs for low- and moderate-income (LMI) households.", url:"https://www.cesa.org/resource-library/resource/lmi-community-solar-resource-database/"}
+   ]},
+
+  {project:"Solar/Wind", owner:"Non-Profit/Community", tool:"On-Bill Financing", usage:"Common",
+   desc:"On-bill financing for community solar allows customers to subscribe to a community solar project and have both the subscription charge and the resulting energy-bill savings reflected directly on their utility bill. Rather than making separate payments to a solar developer, participants see a single net bill that incorporates community solar credits and program charges. This approach simplifies participation, improves payment collection, and can expand access for low- and moderate-income households by reducing administrative barriers and making savings more transparent.",
+   whitepaperUrl:"https://icleiusa.org/", starterUrl:"", pathway:null,
+   caseStudies:[{text:"SolarShares Program (Sacramento, CA): A utility-partnered community solar initiative offering bill credits to subscribers, including low-income households, with a mix of utility and developer roles.", url:""}],
+   resources:[
+     {desc:"American Public Power Association produced a Community Solar Workbook that outlines the implementation of community solar by public utilities.", url:""},
+     {desc:"U.S. Department of Energy – Community Solar Basics: Comprehensive overview of how community solar works and subscriber models.", url:"https://www.energy.gov/eere/solar/community-solar-basics"},
+     {desc:"U.S. EPA – Community Shared Solar Toolkit: Federal toolkit covering program characteristics, protections, and benefits.", url:"https://www.epa.gov/statelocalenergy/community-shared-solar"},
+     {desc:"National Renewable Energy Laboratory (NREL) Resources: Policy, implementation, and finance tools for community solar and distributed generation.", url:"https://www.nrel.gov/state-local-tribal/community-solar"}
+   ]},
+
+  {project:"Solar/Wind", owner:"Non-Profit/Community", tool:"Green Banks", usage:"Common",
+   desc:"Green banks help expand community solar by providing low-cost financing, credit enhancements, and other forms of catalytic capital that reduce project risk and attract private investment. By offering loans, loan guarantees, subordinated debt, or co-investment, green banks can help developers secure funding for projects that might otherwise struggle to obtain financing, particularly in underserved or low- to moderate-income communities. This approach leverages limited public funds to mobilize larger amounts of private capital, accelerating the deployment of community solar and broadening access to its economic and environmental benefits.",
+   whitepaperUrl:"https://icleiusa.org/", starterUrl:"", pathway:null, caseStudies:[], resources:[]},
+
+  // ── SOLAR/WIND — COMMERCIAL ────────────────────────────────────────────────
+  {project:"Solar/Wind", owner:"Commercial/Business", tool:"C-PACE", usage:"Common",
+   desc:"Municipal utilities or investor-owned utilities may finance, own, and operate solar/wind assets as part of their regulated infrastructure. Utility participation can lower financing costs and spread costs among a larger customer base. Utilities may also provide incentives or tariff-based financing mechanisms. Projects can be financed through issuance of revenue bonds (or green revenue bonds) that are repaid from revenues generated by the project itself rather than from taxes.",
+   whitepaperUrl:"", starterUrl:"", pathway:null,
+   caseStudies:[
+     {text:"Boise's Warm Springs Water District, a private member-owned utility, is the oldest (1892) and largest city geothermal utility, supplying geothermal heat to 7.4 million square feet of public and private buildings. The system is largely supported by charges to customers, with some state loans to finance capital projects.", url:""},
+     {text:"Klamath Falls, OR operates a geothermal utility under which the City owns the geothermal wells and systems. Customers pay connection fees and monthly thermal energy charges. The system serves approximately 23 commercial, nonprofit, and government buildings, as well as a downtown sidewalk and bridge snowmelt system.", url:""}
+   ], resources:[]},
+
+  // ── GEOTHERMAL — MUNICIPAL ─────────────────────────────────────────────────
+  {project:"Geothermal", owner:"Used for Municipal Facilities or Assets", tool:"General Fund Appropriation", usage:"Common",
+   desc:"Cities and counties have financed geothermal systems for municipal buildings using their own capital resources, particularly as part of new construction or major renovation projects. In these cases, the geothermal system is incorporated into the overall project budget and funded through capital appropriations (pay-as-you-go financing) or general obligation bonds supported by general government revenues. Because geothermal projects reduce greenhouse gas emissions and improve energy efficiency, municipalities may also choose to issue green bonds to finance all or a portion of the project.",
+   whitepaperUrl:"", starterUrl:"", pathway:GEO_PATHWAY,
+   caseStudies:[
+     {text:"In 2025, the City of Rochester MA completed a remodel of its historic city hall, which included providing geothermal energy to the facility. It was delivered by a private contractor, but financed by city resources.", url:""},
+     {text:"The Seattle School District targets retrofitting 2-3 school buildings per year with geothermal heat pumps. To date, the projects have been funded out of general school district funds from voter-approved property tax levies, although the District is exploring other funding sources.", url:""},
+     {text:"Colorado Mesa University since 2008 has built an extensive geothermal heating and cooling system for 1.2 million square feet of campus buildings. The system has realized $12 million of energy savings since 2008, largely self-financed through the University's capital budget, supplemented by state appropriations, grants and energy savings.", url:""}
+   ], resources:GEO_RES},
+
+  {project:"Geothermal", owner:"Used for Municipal Facilities or Assets", tool:"P3; ESCO, ESA (TEPAs, TESA)", usage:"Limited",
+   desc:"Under a public-private partnership, a private developer designs, builds, finances, operates, and sometimes maintains a geothermal system under a long-term agreement. The public entity makes service payments or purchases thermal energy while transferring many construction and operating risks to the private partner. P3 structures can reduce upfront capital requirements and access private-sector expertise. A specific form of a P3 is when an energy service company (ESCO) designs and implements projects and guarantees that energy savings will be sufficient to repay the investment over time. Municipalities repay the costs through realized utility savings, minimizing upfront expenditures. These agreements can be called TEPAs — thermal energy purchase agreements.",
+   whitepaperUrl:"https://icleiusa.org/", starterUrl:"", pathway:GEO_PATHWAY,
+   caseStudies:[{text:"Fort Polk: The U.S. Army partnered with Ameresco and Velarium Energy under an Energy Saving Performance Contract (ESPC) to provide $30 million of energy efficiency projects at its Fort Polk, Louisiana, military housing complex. The contract implemented a number of energy efficiency projects, including ground-based (geothermal) heat pumps.", url:""}],
+   resources:GEO_RES},
+
+  {project:"Geothermal", owner:"Used for Municipal Facilities or Assets", tool:"Green Banks", usage:"Common",
+   desc:"Green banks and CDFIs can play an important role in expanding access to geothermal energy by providing low-cost, flexible financing that complements traditional public funding sources. Green banks can offer low-interest loans, subordinated debt, loan guarantees, credit enhancements, and co-investment to reduce project risk and attract private capital for municipal, community, and district geothermal projects. CDFIs can help finance geothermal systems in underserved and low-income communities by providing affordable financing for community facilities, affordable housing, small businesses, and nonprofit organizations.",
+   whitepaperUrl:"", starterUrl:"", pathway:GEO_PATHWAY,
+   caseStudies:[
+     {text:"Whisper Valley, TX: Taurus Investment Holdings developed a master-planned community in East Austin for 800 homes. A subsidiary developed geothermal heating/cooling infrastructure for the community. The project's permanent financing was provided by Locus, a CDFI, and private insurance investors. The loans are repaid by $60 per month charges to homeowners and residents.", url:""},
+     {text:"The Heights, St. Paul MN: The Minnesota Climate Innovation Finance Authority, a green bank, provided a $4.7 million loan for a geothermal energy system at a new housing and industrial project. The project will serve about 1,000 new housing units, including affordable homes and rentals, and 1 million square feet of light industrial space.", url:""}
+   ], resources:GEO_RES},
+
+  {project:"Geothermal", owner:"Used for Municipal Facilities or Assets", tool:"Utility Equity Partners", usage:"Common",
+   desc:"Electric and thermal utilities may finance geothermal infrastructure directly or partner with municipalities to develop district energy systems. Utility participation can provide access to capital, technical expertise, and established customer billing systems. In some cases, utilities recover project costs through regulated rates, reducing the financing burden on local governments.",
+   whitepaperUrl:"", starterUrl:"", pathway:GEO_PATHWAY, caseStudies:[], resources:GEO_RES},
+
+  {project:"Geothermal", owner:"Used for Municipal Facilities or Assets", tool:"Energy Service Agreements (TESAs)", usage:"Common",
+   desc:"Under an Energy-as-a-Service model, a third party owns and operates the geothermal equipment and sells heating and cooling services to the municipality under a long-term agreement. The municipality avoids upfront capital expenditures and pays recurring service charges. The provider assumes responsibility for operation and maintenance. These agreements are often called TESAs — thermal energy service agreements.",
+   whitepaperUrl:"", starterUrl:"", pathway:GEO_PATHWAY,
+   caseStudies:[{text:"In 2024, Framingham MA worked with Eversource Energy to build a geothermal heating and cooling system to serve a mix of municipal, commercial and residential buildings. The project was built under an ESA/EaaS structure under which Eversource funded the engineering and construction of the system. The City provided expedited permitting for the project. Monthly thermal tariffs charged to buildings are paid to Eversource.", url:""}],
+   resources:GEO_RES},
+
+  // ── GEOTHERMAL — NON-PROFIT/COMMUNITY ─────────────────────────────────────
+  {project:"Geothermal", owner:"Non-Profit/Community", tool:"Cooperative and Aggregated Procurement", usage:"Limited",
+   desc:"Community Choice Aggregators (CCAs) allow local governments to aggregate electricity demand and procure power on behalf of residents and businesses while the incumbent utility continues to own and operate the transmission and distribution system. Because CCAs can enter into long-term power purchase agreements (PPAs) and invest in local clean energy resources, they can support the development of geothermal electricity projects by providing a stable, creditworthy revenue stream for project developers. Some CCAs also invest directly in community energy infrastructure and could support district geothermal heating and cooling systems through strategic infrastructure investments, public-private partnerships, or long-term thermal energy service agreements.",
+   whitepaperUrl:"", starterUrl:"", pathway:GEO_PATHWAY,
+   caseStudies:[{text:"California Clean Power Alliance (CPA), a joint powers authority serving as a community aggregator for retail power purchases, completed a power purchase agreement for the Geysers complex to provide 18 megawatts of geothermal power to customers in Los Angeles and Ventura counties. The Geysers, owned by Constellation Energy, is the world's largest geothermal power complex.", url:""}],
+   resources:GEO_RES},
+
+  // ── FUGITIVE EMISSIONS — MUNICIPAL ─────────────────────────────────────────
+  {project:"Fugitive Emissions Capture", owner:"Used for Municipal Facilities or Assets", tool:"General Fund Appropriation", usage:"Common",
+   desc:"If a City/County has a source of capital (either through its general fund capital budget or its utility rate charges and bonding), it can self-finance a gas capture project. Federal funding can also be used to augment local funding.",
+   whitepaperUrl:"", starterUrl:"", pathway:FUGITIVE_PATHWAY,
+   caseStudies:[{text:"This 2012 project captured landfill gas and upgraded it to renewable natural gas used to fuel municipal vehicles. The first phase was funded through a $551,000 grant from the Louisiana Department of Natural Resources, plus $250,000 in State Tax Incentives. The second phase was financed via a municipal bond offering. The landfill generates about 175,000 GGEs per year — enough fuel to power 20 municipal utility vehicles plus 10-15 refuse trucks.", url:""}],
+   resources:FUGITIVE_RES},
+
+  {project:"Fugitive Emissions Capture", owner:"Used for Municipal Facilities or Assets", tool:"Public Private Partnership", usage:"Common",
+   desc:"Municipalities frequently partner with private developers specializing in landfill gas and biogas projects. The municipality may provide site access, gas rights, and feedstock, while the private partner finances, builds, owns, and operates the gas collection or processing facilities. Revenue-sharing arrangements allow municipalities to benefit from project income without assuming all development and operational risks.",
+   whitepaperUrl:"", starterUrl:"", pathway:FUGITIVE_PATHWAY,
+   caseStudies:[{text:"Prince William County is working with OPAL Fuels to retire its old generators that capture landfill gases and install a new renewable natural gas production facility. Rather than investing public capital, the County receives a contractual share of revenues (approximately $250,000 per year) from renewable natural gas sales, allowing it to monetize landfill gas without assuming construction, financing, or operational risks.", url:""}],
+   resources:FUGITIVE_RES},
+
+  {project:"Fugitive Emissions Capture", owner:"Used for Municipal Facilities or Assets", tool:"Revolving Loan Funds", usage:"Limited",
+   desc:"State Revolving Funds are among the most important sources of low-cost capital for wastewater methane capture and treatment projects. The Clean Water State Revolving Fund provides below-market loans and, in some cases, principal forgiveness for infrastructure that improves wastewater treatment performance and reduces greenhouse gas emissions. These programs can significantly lower financing costs compared to traditional municipal borrowing.",
+   whitepaperUrl:"", starterUrl:"", pathway:FUGITIVE_PATHWAY, caseStudies:[], resources:FUGITIVE_RES},
+
+  {project:"Fugitive Emissions Capture", owner:"Used for Municipal Facilities or Assets", tool:"Utility Equity Partners", usage:"Limited",
+   desc:"Electric and gas utilities may participate in financing landfill gas and wastewater methane projects when the resulting energy or RNG contributes to utility clean energy, renewable gas, or decarbonization goals. Utilities may enter into long-term purchase agreements, provide interconnection support, or invest directly in project infrastructure.",
+   whitepaperUrl:"https://icleiusa.org/", starterUrl:"", pathway:FUGITIVE_PATHWAY, caseStudies:[],
+   resources:[
+     {desc:"U.S. Environmental Protection Agency — Basic Funding Information for Landfill Gas Energy Projects. This site also contains a downloadable pro-forma model for landfill projects.", url:""},
+     {desc:"This resource was produced by the Clean Energy States Alliance based upon work supported by the U.S. DOE's Office of Energy Efficiency and Renewable Energy (EERE) under the Solar Energy Technologies Office, as part of the National Community Solar Partnership.", url:""},
+     {desc:"RMI 2024 Webinar on Methane Capture — provides an overview as well as case studies from cities.", url:""}
+   ]},
+
+  // ── BUILDING ENERGY EFFICIENCY ─────────────────────────────────────────────
+  {project:"Building Energy Efficiency", owner:"Used for Municipal Facilities or Assets", tool:"Energy Efficiency Contracts", usage:"Common",
+   desc:"Energy Service Companies (ESCOs) offer Energy Savings Performance Contracts (ESPCs) and Energy Service Agreements (ESAs) that allow municipalities to fund building energy improvements through the resulting energy cost savings, often with no upfront capital required.",
+   whitepaperUrl:"https://icleiusa.org/", starterUrl:"", pathway:ESPC_PATHWAY,
+   caseStudies:[
+     {text:"Fort Worth, Texas implemented a multiphase ESPC from 2001 to 2014, ultimately covering over 200 buildings with 6 million square feet. The value of these projects was about $67M, avoiding O&M costs of $5.9M annually. The contract had a simple payback of 11 years.", url:""},
+     {text:"The City of Hartford CT entered into a 10-year ESA with an ESCO to provide a 400 kW fuel cell delivering constant baseload electricity and high-grade heat for the city's municipal facilities.", url:""},
+     {text:"Montgomery County used an EaaS to build a 6.5MW microgrid with on-site generation, electric bus charging, Solar PV canopies, and battery energy storage. The microgrid is a Public Private Partnership between the County and AlphaStruxure, a Schneider Electric & Carlyle JV, under a long-term Energy-as-a-Service contract.", url:""}
+   ],
+   resources:[
+     {desc:"The South Central Partnership for Energy Efficient Economy published an excellent best practice guide on ESPCs.", url:""},
+     {desc:"The Energy Services Coalition provides a searchable database of agreements that can be sorted by state, contract type and vendor.", url:""},
+     {desc:"The U.S. Department of Energy in 2021 produced a detailed guide to ESPCs for Small Projects.", url:""},
+     {desc:"U.S. Department of Energy — 'Financing Opportunities for State and Local Governments To Improve Efficiency Across the Residential Sector' (December 2024) — provides a detailed overview with case studies of energy efficiency contracts.", url:""},
+     {desc:"Energy Services Coalition offers an ESPC 'University' with a series of resources and podcasts on executing ESPCs.", url:""}
+   ]},
+
+  {project:"Building Energy Efficiency", owner:"Homeowner/Residence", tool:"R-PACE", usage:"Limited",
+   desc:"Property Assessed Clean Energy (R-PACE) is a financing mechanism that allows property owners to fund energy efficiency, renewable energy, and other qualifying sustainability improvements and repay the costs through an assessment added to their property tax bill. PACE shifts the financing burden from upfront payment to a long-term property-based obligation, which stays with the property—not the owner—if it is sold. Residential R-PACE targets single-family homes and is available in fewer states due to consumer protection concerns.",
+   whitepaperUrl:"https://icleiusa.org/", starterUrl:"", pathway:PACE_PATHWAY,
+   caseStudies:[{text:"Sonoma County, CA – Energy Independence Program (SCEIP) was one of the earliest PACE programs and has financed over $80 million in residential and commercial clean energy projects, resulting in significant GHG reductions.", url:""}],
+   resources:[{desc:"PACE Nation is a national non-profit that advocates for PACE financing. Its website provides many case studies which can be sorted by project type.", url:""}]},
+
+  {project:"Building Energy Efficiency", owner:"Commercial/Business", tool:"C-PACE", usage:"Limited",
+   desc:"Property Assessed Clean Energy (C-PACE) is a financing mechanism that allows property owners to fund energy efficiency, renewable energy, and other qualifying sustainability improvements and repay the costs through an assessment added to their property tax bill. C-PACE shifts the financing burden from upfront payment to a long-term property-based obligation, which stays with the property—not the owner—if it is sold. C-PACE targets for-profit and nonprofit commercial, industrial, and multifamily buildings.",
+   whitepaperUrl:"https://icleiusa.org/", starterUrl:"", pathway:PACE_PATHWAY,
+   caseStudies:[
+     {text:"The Connecticut Green Bank C-PACE program offers 100% financing for energy improvements for non-residential buildings, including improved lighting, heating and cooling, insulation, and solar panels. The Connecticut Green Bank offers repayment periods up to 25 years.", url:""},
+     {text:"Post Falls, Idaho created a program guidebook for its C-PACE program, which includes details on many common program elements.", url:""},
+     {text:"Lean & Green Michigan administers an open-market, statewide C-PACE program. As of early 2026, 82 local governments covering well over 80% of all Michiganders participate, facilitating over $300 million in PACE financing, saving nearly 750M kWh of electricity and 875M gallons of water while creating over 3,600 jobs.", url:""}
+   ],
+   resources:[
+     {desc:"PACE Nation is a national non-profit that advocates for PACE financing. Its website provides many case studies which can be sorted by project type.", url:""},
+     {desc:"EPA provides a good summary of C-PACE program elements.", url:""},
+     {desc:"Cirrus-Pace Equity is a for-profit C-PACE organization. Its website provides multiple case studies of C-PACE, which can be sorted by project type and financing features.", url:""}
+   ]}
+];
+
+// ─── ICONS ──────────────────────────────────────────────────────────────────
+const projectIcons = {
+  "Car/Truck/Fleet Electrification":"ti-car",
+  "Solar/Wind":"ti-solar-panel",
+  "Geothermal":"ti-flame",
+  "Fugitive Emissions Capture":"ti-cloud",
+  "Building Energy Efficiency":"ti-building"
+};
+const ownerIcons = {
+  "Used for Municipal Facilities or Assets":"ti-building-community",
+  "Homeowner/Residence":"ti-home",
+  "Commercial/Business":"ti-briefcase",
+  "Non-Profit/Community":"ti-users"
+};
+const toolIcons = {
+  "General Fund Appropriation":"ti-coin",
+  "Revolving Loan Funds":"ti-refresh",
+  "Grant":"ti-award",
+  "Cooperative and Aggregated Procurement":"ti-users-group",
+  "New Fees":"ti-receipt",
+  "Public Private Partnership":"ti-handshake",
+  "Green Banks":"ti-plant",
+  "Charging Infrastructure Related Fees":"ti-plug",
+  "Power Purchase Agreement":"ti-bolt",
+  "Non-Profit Sponsorship":"ti-heart",
+  "On-Bill Financing":"ti-file-invoice",
+  "Utility Equity Partners":"ti-building-bank",
+  "C-PACE":"ti-building-store",
+  "R-PACE":"ti-home-eco",
+  "Energy Efficiency Contracts":"ti-settings",
+  "P3; ESCO, ESA (TEPAs, TESA)":"ti-handshake",
+  "Energy Service Agreements (TESAs)":"ti-bolt"
+};
+
+let selected = {project:null, owner:null, toolIdx:null};
+
+function goTo(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  window.scrollTo(0,0);
+  if (id === 'screen-project') renderProjects();
+  if (id === 'screen-owner') renderOwners();
+  if (id === 'screen-tools') renderToolList();
+}
+
+function toggleAck() { const cb=document.getElementById('ack-check'); cb.checked=!cb.checked; checkAck(); }
+function checkAck() { document.getElementById('btn-start').disabled=!document.getElementById('ack-check').checked; }
+
+function renderOptions(containerId, items, iconMap, currentVal, onSelect, nextBtnId) {
+  const el=document.getElementById(containerId); el.innerHTML='';
+  items.forEach(item => {
+    const icon=iconMap[item]||'ti-circle';
+    const btn=document.createElement('button');
+    btn.className='option-btn'+(currentVal===item?' selected':'');
+    btn.innerHTML='<i class="ti '+icon+'"></i><span style="flex:1">'+item+'</span><i class="ti ti-circle-check check-icon"></i>';
+    btn.onclick=()=>{ onSelect(item); renderOptions(containerId,items,iconMap,item,onSelect,nextBtnId); document.getElementById(nextBtnId).disabled=false; };
+    el.appendChild(btn);
+  });
+}
+
+function getProjects(){ return [...new Set(DATA.map(d=>d.project))]; }
+function getOwners(p){ return [...new Set(DATA.filter(d=>d.project===p).map(d=>d.owner))]; }
+function getTools(){ return DATA.filter(d=>d.project===selected.project&&d.owner===selected.owner); }
+
+function renderProjects(){ renderOptions('project-options',getProjects(),projectIcons,selected.project,(val)=>{selected.project=val;selected.owner=null;selected.toolIdx=null;},'btn-next-project'); }
+function renderOwners(){ if(!selected.project)return; renderOptions('owner-options',getOwners(selected.project),ownerIcons,selected.owner,(val)=>{selected.owner=val;selected.toolIdx=null;},'btn-next-owner'); document.getElementById('btn-next-owner').disabled=selected.owner===null; }
+
+function renderToolList() {
+  const chips=document.getElementById('tools-summary-chips');
+  chips.innerHTML='<div class="summary-chip"><i class="ti '+(projectIcons[selected.project]||'ti-circle')+'"></i><strong>'+selected.project+'</strong></div><div class="summary-chip"><i class="ti '+(ownerIcons[selected.owner]||'ti-user')+'"></i><strong>'+selected.owner+'</strong></div>';
+  const matches=getTools();
+  const grid=document.getElementById('tool-select-list');
+  document.getElementById('btn-view-detail').disabled=selected.toolIdx===null;
+  if(!matches.length){ grid.innerHTML='<div class="empty-state"><i class="ti ti-search" style="font-size:24px;display:block;margin-bottom:8px"></i>No financing tools found for this combination.</div>'; return; }
+  grid.innerHTML=matches.map(m=>{
+    const gIdx=DATA.indexOf(m); const isSel=selected.toolIdx===gIdx;
+    const icon=toolIcons[m.tool]||'ti-tool';
+    const badge=m.usage?'<span class="usage-badge '+(m.usage==='Common'?'usage-common':m.usage==='Rare'?'usage-rare':'usage-limited')+'">'+m.usage+'</span>':'';
+    return '<div class="tool-select-card'+(isSel?' selected':'')+'" onclick="selectTool('+gIdx+')">'+
+      '<div class="tool-select-icon"><i class="ti '+icon+'"></i></div>'+
+      '<div class="tool-select-body">'+
+        '<div class="tool-select-top"><span class="tool-select-name">'+m.tool+'</span>'+badge+'</div>'+
+        '<div class="tool-select-desc">'+(m.desc?m.desc.substring(0,180)+(m.desc.length>180?'…':''):'')+'</div>'+
+      '</div>'+
+      '<i class="ti ti-circle-check tool-select-check"></i>'+
+    '</div>';
+  }).join('');
+}
+
+function selectTool(gIdx){ selected.toolIdx=gIdx; renderToolList(); document.getElementById('btn-view-detail').disabled=false; }
+
+function showDetail() {
+  const m=DATA[selected.toolIdx]; if(!m)return;
+  const badge=m.usage?'<span class="usage-badge '+(m.usage==='Common'?'usage-common':m.usage==='Rare'?'usage-rare':'usage-limited')+'">'+m.usage+'</span>':'';
+  const wpBtn=m.whitepaperUrl?'<a href="'+m.whitepaperUrl+'" class="tool-link whitepaper" target="_blank"><i class="ti ti-file-text"></i> ICLEI White Paper</a>':'';
+  const stBtn=m.starterUrl?'<a href="'+m.starterUrl+'" class="tool-link starter" target="_blank"><i class="ti ti-book"></i> Starter Guide</a>':'';
+  const pwBtn='<button class="tool-link" onclick="showPathway('+selected.toolIdx+')"><i class="ti ti-route"></i> Pathway</button>';
+  const csHtml=m.caseStudies&&m.caseStudies.length?'<div class="section-block"><div class="section-block-label">Case Studies</div>'+m.caseStudies.map(cs=>'<div class="card-item'+(cs.url?'':' no-link')+'"><i class="ti ti-map-pin card-item-icon"></i><div class="card-item-body"><div class="card-item-text">'+cs.text+'</div>'+(cs.url?'<a href="'+cs.url+'" class="card-item-link" target="_blank"><i class="ti ti-external-link"></i> View source</a>':'')+'</div></div>').join('')+'</div>':'';
+  const resHtml=m.resources&&m.resources.length?'<div class="section-block"><div class="section-block-label">Resources</div>'+m.resources.map(r=>'<div class="card-item'+(r.url?'':' no-link')+'"><i class="ti ti-book card-item-icon"></i><div class="card-item-body"><div class="card-item-text">'+r.desc+'</div>'+(r.url?'<a href="'+r.url+'" class="card-item-link" target="_blank"><i class="ti ti-external-link"></i> Visit resource</a>':'')+'</div></div>').join('')+'</div>':'';
+  document.getElementById('detail-content').innerHTML=
+    '<div class="detail-header"><div class="detail-tool-name">'+m.tool+'</div>'+
+    '<div class="detail-meta">'+badge+
+      '<span class="summary-chip" style="font-size:11px"><i class="ti '+(projectIcons[m.project]||'ti-circle')+'"></i><strong>'+m.project+'</strong></span>'+
+      '<span class="summary-chip" style="font-size:11px"><i class="ti '+(ownerIcons[m.owner]||'ti-user')+'"></i><strong>'+m.owner+'</strong></span>'+
+    '</div></div>'+
+    (m.desc?'<p class="detail-desc">'+m.desc+'</p>':'')+
+    '<div class="tool-links">'+wpBtn+stBtn+pwBtn+'</div>'+
+    csHtml+resHtml;
+  goTo('screen-detail');
+}
+
+function showPathway(dataIdx) {
+  const m=DATA[dataIdx];
+  document.getElementById('pathway-tool-label').innerHTML='<span style="font-size:12px;color:#888;">Financing tool: </span><span style="font-size:13px;font-weight:500;color:#0F6E56;background:#E1F5EE;border-radius:6px;padding:3px 10px;">'+m.tool+'</span>';
+  if(m.pathway){
+    const p=m.pathway;
+    document.getElementById('pathway-content').innerHTML='<div class="pathway-grid">'+makePathwayCard(1,p.earlyLabel,p.early)+makePathwayCard(2,p.executionLabel,p.execution)+makePathwayCard(3,p.operationsLabel,p.operations)+'</div>';
+  } else {
+    document.getElementById('pathway-content').innerHTML='<div class="coming-soon"><i class="ti ti-clock"></i><p><strong>Pathway guidance coming soon</strong><br>Implementation pathway information for this financing tool is currently being developed and will be available in a future release.</p></div>';
+  }
+  goTo('screen-pathway');
+}
+
+function makePathwayCard(num,label,text){
+  return '<div class="pathway-card" onclick="selectPathwayCard(this)"><i class="ti ti-circle-check pathway-check"></i><div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;"><div class="pathway-stage-num">'+num+'</div><div class="pathway-stage-label">'+label+'</div></div><div class="pathway-stage-text">'+text+'</div></div>';
+}
+
+function selectPathwayCard(el){
+  const was=el.classList.contains('selected');
+  document.querySelectorAll('.pathway-card').forEach(c=>c.classList.remove('selected'));
+  if(!was)el.classList.add('selected');
+}
+
+function restart(){
+  selected={project:null,owner:null,toolIdx:null};
+  document.getElementById('btn-next-project').disabled=true;
+  document.getElementById('btn-next-owner').disabled=true;
+  document.getElementById('btn-view-detail').disabled=true;
+  goTo('screen-project');
+}
+
+renderProjects();
+</script>
+</body>
+</html>
